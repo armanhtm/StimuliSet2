@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Stimulus Dataset Lab</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'IBM Plex Mono',monospace;background:#eae7de;color:#1c1a15}
+#root{display:flex;flex-direction:column;min-height:100vh}
+
+/* NAV */
+.nav{display:flex;align-items:center;gap:16px;padding:0 22px;height:50px;background:#f2efe6;border-bottom:1px solid #c8c3b4;flex-shrink:0}
+.nav-title{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#5a5749;white-space:nowrap;margin-right:8px}
+.tab-group{display:flex;gap:3px}
+.nav-btn{font-family:inherit;font-size:10px;padding:4px 11px;border-radius:5px;border:1px solid #c8c3b4;background:transparent;color:#6b6558;cursor:pointer;font-weight:400;letter-spacing:.04em;transition:all .15s}
+.nav-btn:hover{border-color:#a09880;color:#2c2a22}
+.nav-btn.active{background:#1c1a15;border-color:#1c1a15;color:#f2efe6;font-weight:500}
+.ds-group{display:flex;gap:3px;margin-left:auto}
+.ds-btn{font-family:inherit;font-size:10px;padding:4px 13px;border-radius:5px;border:1px solid #c8c3b4;background:transparent;color:#6b6558;cursor:pointer;transition:all .15s}
+.ds-btn:hover{border-color:#a09880;color:#2c2a22}
+.ds-btn.active.glyph{background:#1a4a6b;border-color:#1a4a6b;color:#e8f2fa}
+.ds-btn.active.texsil{background:#4a1a6b;border-color:#4a1a6b;color:#f0e8fa}
+.reset-btn{font-family:inherit;font-size:10px;padding:4px 10px;border-radius:5px;border:1px solid #c8c3b4;background:transparent;color:#888;cursor:pointer;transition:all .15s;margin-left:auto}
+.reset-btn:hover{border-color:#a09880;color:#333}
+
+/* STUDIO */
+.studio{display:grid;grid-template-columns:1fr 300px;gap:14px;padding:16px 22px;flex:1;align-items:start}
+.canvas-card{border:1px solid #c8c3b4;border-radius:10px;overflow:hidden;background:#f5f2e8;position:relative}
+canvas{width:100%;display:block}
+.canvas-label{position:absolute;bottom:8px;left:10px;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.25)}
+.canvas-actions{position:absolute;bottom:8px;right:8px;display:flex;gap:4px}
+.sample-btn{font-family:inherit;font-size:9px;padding:3px 8px;border-radius:4px;border:1px solid rgba(0,0,0,.18);background:rgba(242,239,230,.85);color:#444;cursor:pointer;transition:all .15s;backdrop-filter:blur(4px)}
+.sample-btn:hover{background:rgba(242,239,230,1);color:#111}
+
+.controls{display:flex;flex-direction:column;gap:8px}
+.panel{border:1px solid;border-radius:8px;padding:10px 12px}
+.panel-ll{border-color:#a8d5c0;background:#f0faf4}
+.panel-hl{border-color:#b8b0e8;background:#f4f2fd}
+.panel-nv{border-color:#dab97a;background:#fdf6e8}
+.group-tag{font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;display:inline-block;padding:2px 8px;border-radius:99px;margin-bottom:9px}
+.tag-ll{color:#0d6644;background:#d0f2e4}
+.tag-hl{color:#36288a;background:#e0dcfd}
+.tag-nv{color:#7a4e0a;background:#fdedc8}
+.param-row{margin-bottom:7px}
+.param-labels{display:flex;justify-content:space-between;margin-bottom:2px}
+.param-name{font-size:9.5px;color:#4a4840;line-height:1.3}
+.param-val{font-size:9px;color:#888;font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:6px}
+.sl{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:2px;outline:none;cursor:pointer}
+.sl::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;cursor:pointer;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,.22)}
+.sl-ll{background:linear-gradient(to right,#88cdb0,#1a7a5e)}.sl-ll::-webkit-slider-thumb{background:#1a7a5e}
+.sl-hl{background:linear-gradient(to right,#b0aae5,#4b46a0)}.sl-hl::-webkit-slider-thumb{background:#4b46a0}
+.sl-nv{background:linear-gradient(to right,#e8b854,#b87a12)}.sl-nv::-webkit-slider-thumb{background:#b87a12}
+
+/* INFO PANEL */
+.info-btn{font-family:inherit;font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid #c8c3b4;background:transparent;color:#888;cursor:pointer;float:right;margin-top:-2px;transition:all .15s}
+.info-btn:hover{color:#333;border-color:#aaa}
+.info-panel{margin-top:8px;background:#f2efe6;border:1px solid #c8c3b4;border-radius:8px;padding:12px 14px;font-size:9.5px;line-height:1.8;color:#4a4840}
+.info-panel h4{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#888;margin:10px 0 4px}
+.info-panel h4:first-child{margin-top:0}
+.info-panel p{color:#555}
+
+/* GRID LAB */
+.grid-lab{padding:14px 22px;flex:1}
+.grid-controls{display:flex;gap:10px;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap}
+.ctrl-group{display:flex;flex-direction:column;gap:4px}
+.ctrl-label{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#888}
+.ctrl-select{font-family:inherit;font-size:10px;padding:5px 10px;border-radius:6px;border:1px solid #c8c3b4;background:#f2efe6;color:#222;cursor:pointer;outline:none}
+.ctrl-select:focus{border-color:#888}
+.grid-size-btn{font-family:inherit;font-size:9px;padding:4px 9px;border-radius:5px;border:1px solid #c8c3b4;background:#f2efe6;color:#666;cursor:pointer}
+.grid-size-btn.active{background:#1c1a15;color:#f2efe6;border-color:#1c1a15}
+.grid-hint{font-size:9px;color:#aaa;margin-top:4px}
+
+.grid-container{overflow:auto;max-height:calc(100vh - 180px)}
+.grid-wrap{display:inline-block;position:relative}
+.grid-cells{display:grid;gap:4px;position:relative}
+.grid-cell{border:1px solid #c8c3b4;border-radius:6px;overflow:hidden;cursor:pointer;background:#f5f2e8;position:relative;transition:all .12s}
+.grid-cell:hover{border-color:#888;transform:scale(1.02);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.grid-cell.selected{border-color:#1c1a15;border-width:2px}
+
+/* RESPONSIVE */
+@media(max-width:720px){.studio{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useRef,useEffect,useCallback,useMemo,memo} = React;
+
+// ═══════════════════════════════════════════════════════════════
+// SEEDED RNG
+// ═══════════════════════════════════════════════════════════════
+const mkRng = seed => {
+  let s = ((seed * 1664525) + 1013904223) >>> 0;
+  return () => { s = ((s * 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+};
+
+// ═══════════════════════════════════════════════════════════════
+// NOVELTY — TILED CHANGE-CIRCLES, ANCHORED TO THE SHAPE
+// ───────────────────────────────────────────────────────────────
+// The effect lives inside the SMALLEST ENCLOSING REGION of the
+// drawn shape (the letter / silhouette), not the whole canvas.
+//
+// Steps:
+//  1. Sample the four canvas corners for a background reference
+//     colour (those corners are always empty paper/background).
+//  2. Scan the image once to find the bounding box of all
+//     non-background pixels — this is the shape's extent, and
+//     effectively the rectangle around its smallest enclosing
+//     circle.
+//  3. Treat THAT bounding box as the "canvas" for the change-
+//     circles: tile an S×S-ish grid inside it, where S collapses
+//     from S_max (≈10) at low novelty down to 1 at max novelty,
+//     and each circle's radius grows to the cell's half-diagonal.
+//
+// Consequences:
+//  • novelty = 0 → no circles, image untouched.
+//  • low novelty → many tiny circles scattered across the shape's
+//                  bounding box. Each one only touches a small
+//                  patch, so the overall letter shape is preserved.
+//  • mid novelty → fewer, larger circles covering bigger chunks.
+//  • novelty = 100 → S=1, one circle whose radius equals the
+//                  bounding-box half-diagonal → the smallest
+//                  circle that contains the whole letter, applied
+//                  globally to everything inside it.
+//
+// Inside each circle, ALL pixels are transformed (letter AND the
+// bit of background the circle happens to cover). So e.g. Scramble
+// shuffles letter pixels together with nearby background — instead
+// of being cosmetically confined to the ink itself.
+//
+// Far-away background (outside the shape's bounding box) is never
+// touched at any novelty level.
+//
+// 5 effects (effectType ∈ 0..4):
+//   0 Invert · 1 Pixelate · 2 Swirl · 3 Noise · 4 Scramble
+// ═══════════════════════════════════════════════════════════════
+
+function applyNoveltyEffect(ctx, novelty, effectType, seed, W, H) {
+  if (novelty <= 0) return;
+
+  const nv = novelty / 100;
+  const type = Math.max(0, Math.min(4, Math.round(effectType)));
+
+  // Snapshot so writes don't feed back into reads
+  const fullImg = ctx.getImageData(0, 0, W, H);
+  const data = fullImg.data;
+  const orig = new Uint8ClampedArray(data);
+
+  // ─ Step 1: sample the four corners for a background reference ─
+  const bgCornerIdx = [
+    (5 * W + 5) * 4,
+    (5 * W + (W - 6)) * 4,
+    ((H - 6) * W + 5) * 4,
+    ((H - 6) * W + (W - 6)) * 4,
+  ];
+  let _bR = 0, _bG = 0, _bB = 0;
+  for (const bi of bgCornerIdx) { _bR += orig[bi]; _bG += orig[bi+1]; _bB += orig[bi+2]; }
+  const bgR = _bR / 4, bgG = _bG / 4, bgB = _bB / 4;
+  const BG_TOL_SQ = 420; // squared colour dist → tolerates faint paper lines
+
+  // ─ Step 2: scan once for the bounding box of non-bg pixels ────
+  let xmin = W, xmax = -1, ymin = H, ymax = -1;
+  for (let y = 0; y < H; y++) {
+    const rowBase = y * W * 4;
+    for (let x = 0; x < W; x++) {
+      const i = rowBase + x * 4;
+      const dR = orig[i] - bgR, dG = orig[i+1] - bgG, dB = orig[i+2] - bgB;
+      if (dR*dR + dG*dG + dB*dB >= BG_TOL_SQ) {
+        if (x < xmin) xmin = x;
+        if (x > xmax) xmax = x;
+        if (y < ymin) ymin = y;
+        if (y > ymax) ymax = y;
+      }
+    }
+  }
+  // Empty canvas? nothing to do
+  if (xmax < 0 || ymax < 0) return;
+
+  // Pad the bbox a touch so circles near the edge can sample a
+  // sliver of background too (scramble/swirl look better that way)
+  const PAD = 6;
+  xmin = Math.max(0, xmin - PAD);
+  ymin = Math.max(0, ymin - PAD);
+  xmax = Math.min(W - 1, xmax + PAD);
+  ymax = Math.min(H - 1, ymax + PAD);
+
+  // Guard against zero-dim bboxes (thin shapes)
+  const region_w = Math.max(4, xmax - xmin);
+  const region_h = Math.max(4, ymax - ymin);
+
+  // ─ Step 3: tile change-circles inside the bounding box ────────
+  const S_max = 10;
+  const S_continuous = 1 + (S_max - 1) * Math.pow(1 - nv, 2);
+  const aspect_sqrt = Math.sqrt(region_w / region_h);
+  const n_cols = Math.max(1, Math.round(S_continuous * aspect_sqrt));
+  const n_rows = Math.max(1, Math.round(S_continuous / aspect_sqrt));
+
+  const cell_w = region_w / n_cols;
+  const cell_h = region_h / n_rows;
+
+  // At nv=1, S=1, radius = bbox half-diagonal → smallest circle
+  // that contains the whole shape.
+  const cell_diag_half = Math.sqrt(cell_w*cell_w + cell_h*cell_h) / 2;
+  const radius = cell_diag_half * nv;
+  if (radius < 1) return;
+
+  // Pixelate block size tied to cell size (uniform across cells)
+  const ps = Math.max(2, Math.floor(Math.min(cell_w, cell_h) * 0.18));
+
+  // Deterministic 2-D hash keyed on seed
+  const hash = (x, y, salt) => {
+    let h = (x * 374761393 + y * 668265263 + seed * 9176477 + salt * 263167) >>> 0;
+    h = ((h ^ (h >>> 13)) * 1274126177) >>> 0;
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  };
+
+  const r2 = radius * radius;
+  const featherBand = Math.min(2.5, radius * 0.12);
+  const featherR = radius - featherBand;
+  const featherR2 = featherR * featherR;
+
+  // Walk each cell, touch only pixels inside its circle (bounding box)
+  for (let cy_i = 0; cy_i < n_rows; cy_i++) {
+    for (let cx_i = 0; cx_i < n_cols; cx_i++) {
+      const ccx = xmin + (cx_i + 0.5) * cell_w;
+      const ccy = ymin + (cy_i + 0.5) * cell_h;
+
+      const x0 = Math.max(0, Math.floor(ccx - radius));
+      const x1 = Math.min(W, Math.ceil(ccx + radius) + 1);
+      const y0 = Math.max(0, Math.floor(ccy - radius));
+      const y1 = Math.min(H, Math.ceil(ccy + radius) + 1);
+
+      for (let y = y0; y < y1; y++) {
+        const dy = y - ccy;
+        for (let x = x0; x < x1; x++) {
+          const dx = x - ccx;
+          const dist2 = dx*dx + dy*dy;
+          if (dist2 > r2) continue;            // outside this circle
+
+          // Feather alpha (only on the last few px band)
+          let alpha = 1;
+          if (dist2 > featherR2 && featherBand > 0) {
+            alpha = 1 - (Math.sqrt(dist2) - featherR) / featherBand;
+            if (alpha <= 0) continue;
+          }
+
+          const idx = (y * W + x) * 4;
+          const or = orig[idx], og = orig[idx+1], ob = orig[idx+2];
+          let nr = or, ng = og, nb = ob;
+
+          if (type === 0) {
+            // Invert
+            nr = 255 - or; ng = 255 - og; nb = 255 - ob;
+          } else if (type === 1) {
+            // Pixelate (canvas-aligned blocks)
+            const px = Math.floor(x / ps) * ps + (ps >> 1);
+            const py = Math.floor(y / ps) * ps + (ps >> 1);
+            const sx = px < 0 ? 0 : (px >= W ? W-1 : px);
+            const sy = py < 0 ? 0 : (py >= H ? H-1 : py);
+            const sidx = (sy * W + sx) * 4;
+            nr = orig[sidx]; ng = orig[sidx+1]; nb = orig[sidx+2];
+          } else if (type === 2) {
+            // Swirl around THIS circle's center
+            const d = Math.sqrt(dist2);
+            const t = d / radius;
+            const swirl = (1 - t) * Math.PI * 2;
+            const a = Math.atan2(dy, dx) + swirl;
+            const sx = Math.round(ccx + Math.cos(a) * d);
+            const sy = Math.round(ccy + Math.sin(a) * d);
+            if (sx >= 0 && sx < W && sy >= 0 && sy < H) {
+              const sidx = (sy * W + sx) * 4;
+              nr = orig[sidx]; ng = orig[sidx+1]; nb = orig[sidx+2];
+            }
+          } else if (type === 3) {
+            // Noise (deterministic on seed)
+            nr = hash(x, y, 1) * 255;
+            ng = hash(x, y, 2) * 255;
+            nb = hash(x, y, 3) * 255;
+          } else {
+            // Scramble: replace with a random pixel from INSIDE the same circle
+            const a = hash(x, y, 4) * Math.PI * 2;
+            const r = Math.sqrt(hash(x, y, 5)) * radius;
+            const sx = Math.round(ccx + Math.cos(a) * r);
+            const sy = Math.round(ccy + Math.sin(a) * r);
+            if (sx >= 0 && sx < W && sy >= 0 && sy < H) {
+              const sidx = (sy * W + sx) * 4;
+              nr = orig[sidx]; ng = orig[sidx+1]; nb = orig[sidx+2];
+            }
+          }
+
+          data[idx]   = or * (1 - alpha) + nr * alpha;
+          data[idx+1] = og * (1 - alpha) + ng * alpha;
+          data[idx+2] = ob * (1 - alpha) + nb * alpha;
+        }
+      }
+    }
+  }
+
+  ctx.putImageData(fullImg, 0, 0);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ALIEN GLYPH RENDERER
+// ═══════════════════════════════════════════════════════════════
+
+const SKELETONS = {
+  0: (pc) => {
+    const n = 1 + Math.floor(pc * 4);
+    const s = [{ t:'L', pts:[[0,-0.88],[0,0.88]] }];
+    for (let i=0;i<n;i++) {
+      const y = -0.72 + i*(1.44/Math.max(n-1,0.8));
+      const w = 0.55 - i*0.03;
+      s.push({ t:'L', pts:[[-w,y],[w,y]] });
+    }
+    return s;
+  },
+  1: (pc) => {
+    const n = 2 + Math.floor(pc * 5);
+    const pts = Array.from({length:n+1},(_,i)=>[(i%2===0?-0.44:0.44),-0.88+i*(1.76/n)]);
+    return [{ t:'L', pts }];
+  },
+  2: (pc) => {
+    const s = [{ t:'C', pts:[[-0.56,-0.82],[0.56,-0.82],[0.56,0.82],[-0.56,0.82]] }];
+    if (pc>0.22) s.push({ t:'L', pts:[[-0.18,-0.82],[-0.18,0.82]] });
+    if (pc>0.48) s.push({ t:'L', pts:[[-0.56,-0.04],[0.56,-0.04]] });
+    if (pc>0.72) s.push({ t:'L', pts:[[0.22,-0.82],[0.22,0.82]] });
+    return s;
+  },
+  3: (pc) => {
+    const s = [
+      { t:'L', pts:[[-0.5,0.88],[-0.5,0.1]] },
+      { t:'L', pts:[[0.5,0.88],[0.5,0.1]] },
+      { t:'A', pts:[[-0.5,0.1],[0,-0.92],[0.5,0.1]] },
+    ];
+    if (pc>0.38) s.push({ t:'L', pts:[[-0.5,0.46],[0.5,0.46]] });
+    if (pc>0.65) s.push({ t:'L', pts:[[0,-0.92],[0,0.88]] });
+    return s;
+  },
+  4: (pc) => {
+    const n = 1 + Math.floor(pc * 2.8);
+    const s = [];
+    for (let i=0;i<n;i++) {
+      const y = n===1 ? 0 : -0.48+i*(0.96/(n-1));
+      s.push({ t:'L', pts:[[-0.74,y],[0.74,y]] });
+      s.push({ t:'L', pts:[[0.74,y],[0.46,y-0.28]] });
+      s.push({ t:'L', pts:[[0.74,y],[0.46,y+0.28]] });
+    }
+    return s;
+  },
+  5: (pc) => {
+    const nb = 2 + Math.floor(pc * 5.5);
+    const s = [{ t:'L', pts:[[0,-0.9],[0,0.9]] }];
+    for (let i=0;i<nb;i++) {
+      const y = -0.68+(i/(nb-0.6))*1.36;
+      const side = i%2===0 ? 1 : -1;
+      const len = 0.26+((i%3)*0.14);
+      s.push({ t:'L', pts:[[0,y],[side*len,y-0.18]] });
+      if (pc>0.55) s.push({ t:'L', pts:[[side*len,y-0.18],[side*(len+0.18),y-0.06]] });
+    }
+    return s;
+  },
+  6: (pc) => {
+    const turns = 1.4 + pc * 2.2;
+    const N = 52;
+    const pts = Array.from({length:N+1},(_,i)=>{
+      const t = i/N;
+      const a = t*Math.PI*2*turns - Math.PI/2;
+      const r = 0.14 + t*0.76;
+      return [Math.cos(a)*r, Math.sin(a)*r];
+    });
+    return [{ t:'S', pts }];
+  },
+  7: (pc) => {
+    const n = 3 + Math.floor(pc * 8);
+    const s = [];
+    for (let i=0;i<n;i++) {
+      const a = (i/n)*Math.PI*2 - Math.PI/2;
+      const outer = 0.7 + (i%3===0?0.14:0);
+      s.push({ t:'L', pts:[[Math.cos(a)*0.14,Math.sin(a)*0.14],[Math.cos(a)*outer,Math.sin(a)*outer]] });
+    }
+    s.push({ t:'E', cx:0, cy:0, rx:0.78, ry:0.78 });
+    if (pc>0.38) s.push({ t:'E', cx:0, cy:0, rx:0.18, ry:0.18 });
+    return s;
+  },
+};
+
+function applyGlyphSym(strokes, sym) {
+  if (sym===0) return strokes;
+  const flip = sym===1 ? ([x,y])=>[-x,y] : ([x,y])=>[-x,-y];
+  const extra = [];
+  strokes.forEach(s => {
+    if (s.t==='E'||s.t==='S'||!s.pts) return;
+    const fp = s.pts.map(flip);
+    const same = s.pts.every((p,i)=>Math.abs(fp[i][0]-p[0])<0.02&&Math.abs(fp[i][1]-p[1])<0.02);
+    if (!same) extra.push({...s, pts:fp});
+  });
+  return [...strokes,...extra];
+}
+
+function renderGlyph(ctx, p, W, H) {
+  ctx.clearRect(0,0,W,H);
+  const bgL = 90 - p.inkDark*0.04;
+  ctx.fillStyle = `hsl(${p.bgHue},10%,${bgL}%)`;
+  ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = `hsla(${p.bgHue},8%,50%,0.07)`;
+  ctx.lineWidth = 0.5;
+  for (let y=H*0.1;y<H*0.92;y+=27) {
+    ctx.beginPath(); ctx.moveTo(W*0.05,y); ctx.lineTo(W*0.95,y); ctx.stroke();
+  }
+
+  const sw  = 1.1 + p.strokeWidth*0.068;
+  const noise = p.noise*0.42;
+  const inkL  = 4 + (100-p.inkDark)*0.26;
+  const curvK = p.curvature/100;
+  const cls   = Math.min(7,Math.floor(p.glyphClass/100*8));
+  const pc    = p.partCount/100;
+  const sym   = Math.min(2,Math.floor(p.symmetry/100*3));
+  const decT  = Math.min(3,Math.floor(p.decoration/100*4));
+  const aspect= 0.6 + (p.aspectRatio/100)*0.82;
+
+  const cx=W/2, cy=H/2;
+  const sc = Math.min(W,H)*0.225;
+  const toC = ([nx,ny]) => [cx + nx*sc/Math.max(0.68,aspect), cy + ny*sc*aspect];
+  const rng2 = mkRng(p.glyphClass*41+Math.floor(p.partCount)*7+9000);
+  const noiseP = ([nx,ny]) => [nx+(rng2()-0.5)*noise/sc, ny+(rng2()-0.5)*noise/sc];
+
+  const base = SKELETONS[cls](pc);
+  const strokes = applyGlyphSym(base, sym);
+
+  const caps = ['butt','round','square'];
+  ctx.strokeStyle = `hsl(${p.inkHue},36%,${inkL}%)`;
+  ctx.fillStyle   = `hsl(${p.inkHue},36%,${inkL}%)`;
+  ctx.lineWidth   = sw;
+  ctx.lineCap     = caps[Math.floor(p.lineCap/100*2.99)];
+  ctx.lineJoin    = 'round';
+
+  const drawStroke = (s) => {
+    const prevAlpha = ctx.globalAlpha;
+    if (s.alpha!=null) ctx.globalAlpha *= s.alpha;
+    if (s.t==='D') {
+      const [ex,ey]=toC([s.cx,s.cy]);
+      const pr = sc*s.r/Math.max(0.68,aspect);
+      ctx.beginPath(); ctx.arc(ex,ey,Math.max(1.5,pr),0,Math.PI*2); ctx.fill();
+    } else if (s.t==='E') {
+      const [ex,ey]=toC([s.cx,s.cy]);
+      const rx2=sc*s.rx/Math.max(0.68,aspect), ry2=sc*s.ry*aspect;
+      ctx.beginPath(); ctx.ellipse(ex,ey,Math.max(1,Math.abs(rx2)),Math.max(1,Math.abs(ry2)),0,0,Math.PI*2); ctx.stroke();
+    } else if (s.t==='Q') {
+      const pts = [s.p0,s.p1,s.p2].map(pt=>toC(noiseP(pt)));
+      ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+      ctx.quadraticCurveTo(pts[1][0],pts[1][1],pts[2][0],pts[2][1]); ctx.stroke();
+    } else if (s.pts) {
+      const pts = s.pts.map(pt=>toC(noiseP(pt)));
+      ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+      if (s.t==='A'&&pts.length===3) {
+        ctx.quadraticCurveTo(pts[1][0],pts[1][1],pts[2][0],pts[2][1]);
+      } else if (s.t==='S') {
+        pts.slice(1).forEach(pt=>ctx.lineTo(pt[0],pt[1]));
+      } else {
+        for (let i=1;i<pts.length;i++) {
+          if (curvK>0.05&&pts.length===2) {
+            const [x1,y1]=pts[0],[x2,y2]=pts[1];
+            const mx=(x1+x2)/2,my=(y1+y2)/2,dx=x2-x1,dy=y2-y1;
+            ctx.quadraticCurveTo(mx-dy*curvK*0.38,my+dx*curvK*0.38,x2,y2);
+          } else if (curvK>0.05&&i<pts.length-1) {
+            const p0=pts[i-1],p1=pts[i],p2=pts[Math.min(i+1,pts.length-1)];
+            const cpx=p1[0]+(p2[0]-p0[0])*curvK*0.15;
+            const cpy=p1[1]+(p2[1]-p0[1])*curvK*0.15;
+            ctx.quadraticCurveTo(cpx,cpy,(p1[0]+p2[0])/2,(p1[1]+p2[1])/2);
+          } else {
+            ctx.lineTo(pts[i][0],pts[i][1]);
+          }
+        }
+      }
+      if (s.t==='C') ctx.closePath();
+      ctx.stroke();
+    }
+    ctx.globalAlpha = prevAlpha;
+  };
+
+  strokes.forEach(drawStroke);
+
+  if (decT>0) {
+    ctx.lineWidth = sw*0.65;
+    base.filter(s=>s.t==='L'&&s.pts?.length>=2).forEach(s=>{
+      [s.pts[0], s.pts[s.pts.length-1]].forEach(pt=>{
+        const [ex,ey]=toC(noiseP(pt));
+        if (decT===1){ ctx.beginPath();ctx.arc(ex,ey,sw*1.5,0,Math.PI*2);ctx.fill(); }
+        else if(decT===2){ ctx.beginPath();ctx.arc(ex,ey,sw*2.2,0,Math.PI*2);ctx.stroke(); }
+        else { ctx.beginPath();ctx.moveTo(ex-sw*2.8,ey);ctx.lineTo(ex+sw*2.8,ey);ctx.stroke(); }
+      });
+    });
+    ctx.lineWidth = sw;
+  }
+
+  // Tiled change-circles
+  applyNoveltyEffect(ctx, p.novelty, p.effectType, (p._seed|0), W, H);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TEXTURE + SILHOUETTE RENDERER
+// ═══════════════════════════════════════════════════════════════
+
+function buildSilPath(ctx, cx, cy, sz, silType, artic) {
+  const a01 = artic;
+  const N=80;
+  ctx.beginPath();
+  if (silType===0) {
+    const rx=sz*(0.65+a01*0.22), ry=sz*(1.0+a01*0.1);
+    for (let i=0;i<=N;i++) {
+      const a=(i/N)*Math.PI*2-Math.PI/2;
+      const r=Math.sqrt(1/(Math.cos(a)**2/rx**2+Math.sin(a)**2/ry**2));
+      i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    }
+    ctx.closePath();
+  } else if (silType===1) {
+    const vW=(t)=>{
+      if(t<0.16)return sz*(0.52+a01*0.12);
+      if(t<0.35)return sz*(0.52-(t-0.16)/0.19*0.28);
+      if(t<0.45)return sz*(0.24+a01*0.05);
+      if(t<0.6) return sz*(0.24+(t-0.45)/0.15*0.3);
+      return sz*(0.54+a01*0.16);
+    };
+    const pts=[];
+    for(let i=0;i<=N/2;i++){const t=i/(N/2);const w=vW(t);const y=cy-sz+t*sz*2;pts.push([cx+w,y]);}
+    for(let i=N/2;i>=0;i--){const t=i/(N/2);const w=vW(t);const y=cy-sz+t*sz*2;pts.push([cx-w,y]);}
+    pts.forEach(([x,y],i)=>i===0?ctx.moveTo(x,y):ctx.lineTo(x,y));
+    ctx.closePath();
+  } else if (silType===2) {
+    for(let i=0;i<=N;i++){
+      const a=(i/N)*Math.PI*2-Math.PI/2;
+      const squeeze=1+a01*0.25*Math.cos(a+Math.PI/2);
+      const rx2=sz*(0.6*squeeze), ry2=sz;
+      const r=Math.sqrt(1/(Math.cos(a)**2/rx2**2+Math.sin(a)**2/ry2**2));
+      i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    }
+    ctx.closePath();
+  } else if (silType===3) {
+    const arm=sz*(0.88+a01*0.1),w=sz*(0.24+a01*0.13);
+    const crossPts=[[-w,-arm],[w,-arm],[w,-w],[arm,-w],[arm,w],[w,w],[w,arm],[-w,arm],[-w,w],[-arm,w],[-arm,-w],[-w,-w]];
+    for(let i=0;i<=N;i++){
+      const t=i/N, fi=t*crossPts.length, idx=Math.floor(fi)%crossPts.length, f=fi%1;
+      const nxt=(idx+1)%crossPts.length;
+      const dx=crossPts[idx][0]+(crossPts[nxt][0]-crossPts[idx][0])*f;
+      const dy=crossPts[idx][1]+(crossPts[nxt][1]-crossPts[idx][1])*f;
+      i===0?ctx.moveTo(cx+dx,cy+dy):ctx.lineTo(cx+dx,cy+dy);
+    }
+    ctx.closePath();
+  } else if (silType===4) {
+    const rO=sz*(1.0+a01*0.1),rI=sz*(0.38-a01*0.06);
+    for(let i=0;i<=N;i++){
+      const a=(i/N)*Math.PI*2-Math.PI/2;
+      const starT=((i/N)*5)%1;
+      const r=starT<0.5?rO+(rI-rO)*starT*2:rI+(rO-rI)*(starT-0.5)*2;
+      i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    }
+    ctx.closePath();
+  } else if (silType===5) {
+    const rx=sz*(0.68+a01*0.2),ry=sz*(1.0+a01*0.1);
+    for(let i=0;i<=N;i++){
+      const a=(i/N)*Math.PI*2-Math.PI/2;
+      const denom=Math.abs(Math.cos(a))/rx+Math.abs(Math.sin(a))/ry;
+      const r=denom>0.001?1/denom:sz;
+      i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    }
+    ctx.closePath();
+  } else {
+    const ah=sz*(0.28+a01*0.09), aw=sz*0.75;
+    const rawPts=[[-aw,-ah],[aw*0.12,-ah],[sz,0],[aw*0.12,ah],[-aw,ah]];
+    for(let i=0;i<=N;i++){
+      const t=i/N, fi=t*rawPts.length, idx=Math.floor(fi)%rawPts.length, f=fi%1;
+      const nxt=(idx+1)%rawPts.length;
+      const dx=rawPts[idx][0]+(rawPts[nxt][0]-rawPts[idx][0])*f;
+      const dy=rawPts[idx][1]+(rawPts[nxt][1]-rawPts[idx][1])*f;
+      i===0?ctx.moveTo(cx+dx,cy+dy):ctx.lineTo(cx+dx,cy+dy);
+    }
+    ctx.closePath();
+  }
+}
+
+function fillTexture(ctx,texType,hue,sat,light,freq,cx,cy,sz) {
+  const b=sz*1.55;
+  if (texType===0) {
+    for(let x=cx-b;x<cx+b;x+=freq*2.6)
+      for(let y=cy-b;y<cy+b;y+=freq*2.6){
+        ctx.fillStyle=`hsl(${(hue+x*0.28)%360},${sat}%,${light+8}%)`;
+        ctx.beginPath();ctx.arc(x,y,freq*0.52,0,Math.PI*2);ctx.fill();
+      }
+  } else if (texType===1) {
+    ctx.strokeStyle=`hsl(${hue+28},${sat}%,${light}%)`;ctx.lineWidth=freq*0.55;
+    for(let x=cx-b;x<cx+b;x+=freq*2.2){ctx.beginPath();ctx.moveTo(x,cy-b);ctx.lineTo(x,cy+b);ctx.stroke();}
+  } else if (texType===2) {
+    ctx.strokeStyle=`hsl(${hue+18},${sat}%,${light}%)`;ctx.lineWidth=freq*0.55;
+    for(let y=cy-b;y<cy+b;y+=freq*2.2){ctx.beginPath();ctx.moveTo(cx-b,y);ctx.lineTo(cx+b,y);ctx.stroke();}
+  } else if (texType===3) {
+    ctx.lineWidth=freq*0.42;
+    ctx.strokeStyle=`hsl(${hue+40},${sat}%,${light+4}%)`;
+    for(let d=-b*2;d<b*2;d+=freq*2.6){ctx.beginPath();ctx.moveTo(cx-b,cy+d+b);ctx.lineTo(cx+b,cy+d-b);ctx.stroke();}
+    ctx.strokeStyle=`hsl(${hue+58},${sat}%,${light}%)`;
+    for(let d=-b*2;d<b*2;d+=freq*2.6){ctx.beginPath();ctx.moveTo(cx-b,cy+d-b);ctx.lineTo(cx+b,cy+d+b);ctx.stroke();}
+  } else if (texType===4) {
+    const r2=mkRng(88);
+    const n=Math.floor((b*2)**2/(freq*28));
+    for(let i=0;i<n;i++){
+      const x=cx-b+r2()*b*2, y=cy-b+r2()*b*2;
+      ctx.fillStyle=`hsl(${(hue+r2()*42)%360},${sat}%,${light+r2()*22}%)`;
+      ctx.beginPath();ctx.arc(x,y,freq*0.22*(0.5+r2()),0,Math.PI*2);ctx.fill();
+    }
+  } else if (texType===5) {
+    ctx.strokeStyle=`hsl(${hue+22},${sat}%,${light+4}%)`;ctx.lineWidth=freq*0.44;
+    for(let sy2=cy-b-freq*1.5;sy2<cy+b+freq*1.5;sy2+=freq*2.9){
+      ctx.beginPath();let first=true;
+      for(let x=cx-b;x<=cx+b;x+=4){const y=sy2+freq*1.3*Math.sin((x-cx)/(freq*4.8)*Math.PI*2);first?ctx.moveTo(x,y):ctx.lineTo(x,y);first=false;}
+      ctx.stroke();
+    }
+  } else if (texType===6) {
+    const bW=freq*3.2,bH=freq*1.6;let row=0;
+    for(let y=cy-b;y<cy+b;y+=bH){
+      const off=(row%2)*bW/2;
+      for(let x=cx-b-bW+off;x<cx+b+bW;x+=bW){
+        ctx.fillStyle=`hsl(${(hue+row*7)%360},${sat-10}%,${light+14}%)`;ctx.fillRect(x+0.5,y+0.5,bW-1,bH-1);
+        ctx.strokeStyle=`hsl(${hue},${sat}%,${light-10}%)`;ctx.lineWidth=0.7;ctx.strokeRect(x+0.5,y+0.5,bW-1,bH-1);
+      }
+      row++;
+    }
+  } else {
+    const cs=freq*2.1,r3=mkRng(77);
+    for(let x=cx-b;x<cx+b;x+=cs)
+      for(let y=cy-b;y<cy+b;y+=cs){
+        ctx.fillStyle=`hsl(${(hue+r3()*58)%360},${sat}%,${light+r3()*26-8}%)`;
+        ctx.fillRect(x,y,cs-1,cs-1);
+      }
+  }
+}
+
+function renderTexSil(ctx, p, W, H) {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=`hsl(${p.bgHue},9%,88%)`;ctx.fillRect(0,0,W,H);
+
+  const artic=p.articulation/100;
+  const sz=52+p.size*0.42;
+  const silType=Math.min(6,Math.floor(p.silhouette/100*7));
+  const texType=Math.min(7,Math.floor(p.texType/100*8));
+  const orient=(p.orientation/100)*Math.PI*2;
+  const texHue=p.texHue, freq=3+p.texFreq*0.28;
+  const texSat=42+p.texSat*0.5, texLight=28+p.texLight*0.44;
+
+  const cx=W/2,cy=H/2;
+
+  ctx.save();
+  ctx.translate(cx,cy);ctx.rotate(orient);ctx.translate(-cx,-cy);
+  buildSilPath(ctx,cx,cy,sz,silType,artic);
+  ctx.fillStyle=`hsl(${texHue},${texSat}%,${texLight+22}%)`;ctx.fill();
+  ctx.save();
+  buildSilPath(ctx,cx,cy,sz,silType,artic);
+  ctx.clip();
+  fillTexture(ctx,texType,texHue,texSat,texLight,freq,cx,cy,sz);
+  ctx.restore();
+  buildSilPath(ctx,cx,cy,sz,silType,artic);
+  const edgeL=14+(100-p.edgeContrast)*0.29;
+  ctx.strokeStyle=`hsla(${texHue},34%,${edgeL}%,${0.22+p.edgeContrast*0.006})`;
+  ctx.lineWidth=0.7+p.edgeContrast*0.026;ctx.stroke();
+  ctx.restore();
+
+  // Tiled change-circles
+  applyNoveltyEffect(ctx, p.novelty, p.effectType, (p._seed|0), W, H);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DATASET CONFIG
+// ═══════════════════════════════════════════════════════════════
+
+const NOVELTY_INFO = `Novelty is a GRID OF CHANGE-CIRCLES tiled across the SHAPE's bounding region, not the whole canvas. First we scan the rendered image, identify pixels that differ from the corner background colour, and compute the bounding box of the drawn letter / silhouette. All change-circles live inside that bounding box — far-away background (empty paper) is NEVER touched.\n\nWithin the bounding box, the grid is an S×S-ish tiling where each cell hosts one circle. As the novelty slider grows, TWO things happen in tandem:\n\n1. The grid shrinks, so the NUMBER of circles drops (bigger circles can't fit as many times into the bounding box).\n2. Each circle's RADIUS grows, reaching the cell's half-diagonal at novelty=100.\n\nBehavior:\n• novelty = 0 → no circles, image untouched.\n• low novelty → many tiny circles scattered across the letter; each one's interior is tiny, so the overall image shape is preserved.\n• mid novelty → fewer, larger circles covering bigger chunks.\n• novelty = 100 → S=1, one circle whose radius equals the bounding-box half-diagonal — i.e. the smallest enclosing circle of the letter — applied to everything inside it.\n\nInside a circle, EVERY pixel is transformed (letter and the slice of background the circle happens to cover). So e.g. Scramble genuinely mixes letter pixels with the bit of background around them instead of being cosmetically confined to the ink.\n\nThe Change-effect slider (0–4) picks the pixel-level transform:\n0 · Invert    — photographic negative\n1 · Pixelate  — coarse square quantization; block size scales with cell size\n2 · Swirl     — rotational displacement around each circle's center\n3 · Noise     — replace with deterministic RGB noise (reseeded by New-sample)\n4 · Scramble  — each pixel replaced by a random pixel from inside the SAME circle`;
+
+const DATASETS = [
+  {
+    id:'glyph', label:'Alien Glyphs', cls:'glyph',
+    renderer: renderGlyph,
+    info: {
+      overview:`A generative writing system producing alien/runic characters. Each glyph is assembled from a structural skeleton (the glyph class), duplicated/mirrored by symmetry rules, and styled by low-level stroke properties. Novelty is applied AFTER rendering as a grid of change-circles.`,
+      ll:`Stroke width · How thick each drawn line appears.\nPoint noise · Random perturbation applied to every control point coordinate.\nInk darkness · How dark and saturated the ink colour is.\nInk hue · The colour channel of the ink (0–360°).\nBackground hue · The colour cast of the paper/background.\nLine cap · Shape of stroke endpoints: flat, round, or square.\nCurvature · 0 = all straight lines; 100 = every line bows with a quadratic curve.`,
+      hl:`Glyph class · Selects among 8 structural templates: Staff, Zigzag, Frame, Arch, Arrow, Branches, Spiral, Radial.\nPart/stroke count · Scales the number of sub-strokes within the chosen class.\nSymmetry · 0 = none; mid = bilateral (left-right mirror); high = rotational (180°).\nEndpoint decoration · Adds marks at line endpoints: none / filled dots / open circles / serifs.\nAspect ratio · Stretches the glyph tall or wide.`,
+      nv: NOVELTY_INFO
+    },
+    params:{
+      ll:[
+        {key:'strokeWidth',label:'Stroke width',min:0,max:100,def:28},
+        {key:'noise',label:'Point noise',min:0,max:100,def:8},
+        {key:'inkDark',label:'Ink darkness',min:0,max:100,def:70},
+        {key:'inkHue',label:'Ink hue',min:0,max:360,def:228},
+        {key:'bgHue',label:'Background hue',min:0,max:360,def:40},
+        {key:'lineCap',label:'Line cap (flat→round→sq)',min:0,max:100,def:33},
+        {key:'curvature',label:'Curvature',min:0,max:100,def:18},
+      ],
+      hl:[
+        {key:'glyphClass',label:'Glyph class (0–7)',min:0,max:100,def:0},
+        {key:'partCount',label:'Part / stroke count',min:0,max:100,def:16},
+        {key:'symmetry',label:'Symmetry (none→bilat→rot)',min:0,max:100,def:0},
+        {key:'decoration',label:'Endpoint decoration',min:0,max:100,def:0},
+        {key:'aspectRatio',label:'Aspect ratio (tall↔wide)',min:0,max:100,def:50},
+      ],
+      nv:[
+        {key:'novelty',label:'Novelty (tiled circles)',min:0,max:100,def:0},
+        {key:'effectType',label:'Change effect (0–4)',min:0,max:4,def:0},
+      ]
+    }
+  },
+  {
+    id:'texsil', label:'Texture + Silhouette', cls:'texsil',
+    renderer: renderTexSil,
+    info: {
+      overview:`A two-layer generative system: a silhouette shape is clipped and filled with a procedural texture pattern. Seven parametric silhouettes and eight texture types create a large combinatorial space. Novelty is applied AFTER rendering as a grid of change-circles.`,
+      ll:`Texture hue · Base colour of the texture pattern.\nTexture frequency · How dense/fine the texture is (high = small repeating units).\nTexture saturation · Colour intensity of the texture.\nTexture lightness · Brightness of the texture fill.\nEdge contrast · Darkness and thickness of the silhouette outline.\nBackground hue · The colour cast of the background field.`,
+      hl:`Silhouette shape · 7 types: Leaf, Vase, Teardrop, Cross, Star, Diamond, Arrow.\nArticulation · Controls how strongly the silhouette departs from its basic canonical form.\nObject size · Overall scale of the shape on the canvas.\nOrientation · Rotation angle of the silhouette (0–360°).\nTexture type · 8 patterns: Dots, V-Stripes, H-Stripes, Crosshatch, Stipple, Wave, Brick, Mosaic.`,
+      nv: NOVELTY_INFO
+    },
+    params:{
+      ll:[
+        {key:'texHue',label:'Texture hue',min:0,max:360,def:115},
+        {key:'texFreq',label:'Texture frequency',min:0,max:100,def:46},
+        {key:'texSat',label:'Texture saturation',min:0,max:100,def:60},
+        {key:'texLight',label:'Texture lightness',min:0,max:100,def:44},
+        {key:'edgeContrast',label:'Edge contrast',min:0,max:100,def:50},
+        {key:'bgHue',label:'Background hue',min:0,max:360,def:36},
+      ],
+      hl:[
+        {key:'silhouette',label:'Silhouette shape (0–6)',min:0,max:100,def:0},
+        {key:'articulation',label:'Articulation',min:0,max:100,def:16},
+        {key:'size',label:'Object size',min:0,max:100,def:50},
+        {key:'orientation',label:'Orientation (0–360°)',min:0,max:100,def:50},
+        {key:'texType',label:'Texture type (0–7)',min:0,max:100,def:7},
+      ],
+      nv:[
+        {key:'novelty',label:'Novelty (tiled circles)',min:0,max:100,def:0},
+        {key:'effectType',label:'Change effect (0–4)',min:0,max:4,def:0},
+      ]
+    }
+  }
+];
+
+const buildDefaults=()=>{
+  const o={};
+  DATASETS.forEach((ds,i)=>{
+    o[i]={};
+    ['ll','hl','nv'].forEach(g=>ds.params[g].forEach(p=>{o[i][p.key]=p.def;}));
+  });
+  return o;
+};
+
+const GC={ll:{cls:'ll',label:'Low-level features'},hl:{cls:'hl',label:'High-level features'},nv:{cls:'nv',label:'Novelty circles'}};
+
+// ═══════════════════════════════════════════════════════════════
+// COMPONENTS
+// ═══════════════════════════════════════════════════════════════
+
+const DatasetCanvas = memo(({renderer,params,width,height,style})=>{
+  const ref=useRef(null);
+  useEffect(()=>{
+    const cv=ref.current; if(!cv)return;
+    const ctx=cv.getContext('2d');
+    renderer(ctx,params,cv.width,cv.height);
+  },[renderer,params]);
+  return <canvas ref={ref} width={width} height={height} style={{display:'block',width:'100%',...style}}/>;
+});
+
+const EFFECT_NAMES = ['Invert','Pixelate','Swirl','Noise','Scramble'];
+
+function ParamSlider({param,value,onChange,grp}){
+  const displayVal = param.key==='effectType'
+    ? `${value} · ${EFFECT_NAMES[Math.max(0,Math.min(4,Math.round(value)))]}`
+    : value;
+  return(
+    <div className="param-row">
+      <div className="param-labels">
+        <span className="param-name">{param.label}</span>
+        <span className="param-val">{displayVal}</span>
+      </div>
+      <input type="range" className={`sl sl-${grp}`} min={param.min} max={param.max} value={value}
+        onChange={e=>onChange(param.key,Number(e.target.value))}/>
+    </div>
+  );
+}
+
+function InfoPanel({info}){
+  const fmt=(text)=>text.split('\n').map((ln,i)=><p key={i}>{ln}</p>);
+  return(
+    <div className="info-panel">
+      <p>{info.overview}</p>
+      <h4>Low-level parameters</h4>{fmt(info.ll)}
+      <h4>High-level parameters</h4>{fmt(info.hl)}
+      <h4>Novelty — tiled change-circles</h4>{fmt(info.nv)}
+    </div>
+  );
+}
+
+function Studio({dsIdx,dataset,params,onParamChange,onReset}){
+  const [showInfo,setShowInfo]=useState(false);
+  const [seed,setSeed]=useState(0);
+
+  const liveParams=useMemo(()=>({...params,_seed:seed}),[params,seed]);
+  const renderer=useCallback((ctx,p,W,H)=>dataset.renderer(ctx,p,W,H),[dataset]);
+
+  return(
+    <div className="studio">
+      <div>
+        <div className="canvas-card">
+          <DatasetCanvas renderer={renderer} params={liveParams} width={560} height={440}/>
+          <div className="canvas-label">{dataset.label}</div>
+          <div className="canvas-actions">
+            <button className="sample-btn" onClick={()=>setSeed(s=>s+1)}>New sample ↻</button>
+          </div>
+        </div>
+        {showInfo && <InfoPanel info={dataset.info}/>}
+      </div>
+      <div className="controls">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+          <button className="info-btn" onClick={()=>setShowInfo(v=>!v)}>{showInfo?'Hide info':'How it works ?'}</button>
+          <button className="reset-btn" onClick={onReset}>↺ reset</button>
+        </div>
+        {['ll','hl','nv'].map(grp=>(
+          <div key={grp} className={`panel panel-${grp}`}>
+            <div className={`group-tag tag-${grp}`}>{GC[grp].label}</div>
+            {dataset.params[grp].map(param=>(
+              <ParamSlider key={param.key} param={param} value={params[param.key]} onChange={onParamChange} grp={grp}/>
+            ))}
+          </div>
+        ))}
+        <p style={{fontSize:9,color:'#aaa',lineHeight:1.7,padding:'0 2px'}}>
+          Green = low-level · Purple = high-level · Gold = novelty circles<br/>
+          Grid shrinks as circles grow: ~100 tiny circles → 1 big circle · 5 effect types.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── GRID LAB ─────────────────────────────────────────────────
+const GRID_SIZES=[4,5,6];
+
+const MiniCanvas=memo(({renderer,params,cellW,cellH,selected,onClick})=>{
+  const ref=useRef(null);
+  useEffect(()=>{
+    const cv=ref.current; if(!cv)return;
+    const ctx=cv.getContext('2d');
+    renderer(ctx,params,cv.width,cv.height);
+  },[renderer,params]);
+  return(
+    <div className={`grid-cell${selected?' selected':''}`} onClick={onClick}
+      style={{width:cellW,height:cellH,flexShrink:0}}>
+      <canvas ref={ref} width={cellW*2} height={cellH*2} style={{width:'100%',height:'100%',display:'block'}}/>
+    </div>
+  );
+});
+
+function GridLab({dataset,baseParams,onSelectCell}){
+  const allParams=dataset.params;
+  const allParamList=useMemo(()=>[...allParams.ll,...allParams.hl,...allParams.nv],[allParams]);
+
+  const [gridSize,setGridSize]=useState(5);
+  const [xKey,setXKey]=useState(allParams.ll[0].key);
+  const [yKey,setYKey]=useState(allParams.hl[0].key);
+  const [selected,setSelected]=useState(null);
+
+  const xParam=useMemo(()=>allParamList.find(p=>p.key===xKey)||allParams.ll[0],[xKey,allParamList,allParams]);
+  const yParam=useMemo(()=>allParamList.find(p=>p.key===yKey)||allParams.hl[0],[yKey,allParamList,allParams]);
+
+  const xVals=useMemo(()=>Array.from({length:gridSize},(_,i)=>Math.round(xParam.min+(xParam.max-xParam.min)*i/(gridSize-1))),[xParam,gridSize]);
+  const yVals=useMemo(()=>Array.from({length:gridSize},(_,i)=>Math.round(yParam.min+(yParam.max-yParam.min)*i/(gridSize-1))),[yParam,gridSize]);
+
+  const cellW=120, cellH=96;
+
+  const handleClick=(xi,yi)=>{
+    setSelected(`${xi}-${yi}`);
+    const p={...baseParams,[xKey]:xVals[xi],[yKey]:yVals[yi]};
+    onSelectCell(p);
+  };
+
+  const getGrp=(key)=>{
+    if(allParams.ll.find(p=>p.key===key))return 'll';
+    if(allParams.hl.find(p=>p.key===key))return 'hl';
+    return 'nv';
+  };
+
+  return(
+    <div className="grid-lab">
+      <div className="grid-controls">
+        <div className="ctrl-group">
+          <div className="ctrl-label">X axis (columns)</div>
+          <select className="ctrl-select" value={xKey} onChange={e=>setXKey(e.target.value)}>
+            <optgroup label="Low-level">{allParams.ll.map(p=><option key={p.key} value={p.key}>{p.label}</option>)}</optgroup>
+            <optgroup label="High-level">{allParams.hl.map(p=><option key={p.key} value={p.key}>{p.label}</option>)}</optgroup>
+            <optgroup label="Novelty">{allParams.nv.map(p=><option key={p.key} value={p.key}>{p.label}</option>)}</optgroup>
+          </select>
+          <div className="grid-hint" style={{color:getGrp(xKey)==='ll'?'#0d6644':getGrp(xKey)==='hl'?'#36288a':'#7a4e0a'}}>
+            [{xVals[0]} → {xVals[xVals.length-1]}] {getGrp(xKey).toUpperCase()}
+          </div>
+        </div>
+        <div className="ctrl-group">
+          <div className="ctrl-label">Y axis (rows)</div>
+          <select className="ctrl-select" value={yKey} onChange={e=>setYKey(e.target.value)}>
+            <optgroup label="Low-level">{allParams.ll.map(p=><option key={p.key} value={p.key}>{p.label}</option>)}</optgroup>
+            <optgroup label="High-level">{allParams.hl.map(p=><option key={p.key} value={p.key}>{p.label}</option>)}</optgroup>
+            <optgroup label="Novelty">{allParams.nv.map(p=><option key={p.key} value={p.key}>{p.label}</option>)}</optgroup>
+          </select>
+          <div className="grid-hint" style={{color:getGrp(yKey)==='ll'?'#0d6644':getGrp(yKey)==='hl'?'#36288a':'#7a4e0a'}}>
+            [{yVals[0]} → {yVals[yVals.length-1]}] {getGrp(yKey).toUpperCase()}
+          </div>
+        </div>
+        <div className="ctrl-group">
+          <div className="ctrl-label">Grid size</div>
+          <div style={{display:'flex',gap:3}}>
+            {GRID_SIZES.map(n=>(
+              <button key={n} className={`grid-size-btn${gridSize===n?' active':''}`} onClick={()=>setGridSize(n)}>{n}×{n}</button>
+            ))}
+          </div>
+        </div>
+        <div className="ctrl-group" style={{fontSize:9,color:'#888',lineHeight:1.8,marginLeft:8,maxWidth:260}}>
+          Each cell is rendered with the base Studio params + the two varied params. Click any cell to load it into Studio.
+        </div>
+      </div>
+
+      <div className="grid-container">
+        <div className="grid-wrap">
+          <div style={{display:'flex',marginLeft:48,marginBottom:3}}>
+            {xVals.map((v,i)=>(
+              <div key={i} style={{width:cellW,fontSize:7.5,color:'#888',textAlign:'center',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',padding:'0 2px'}}>{v}</div>
+            ))}
+          </div>
+          <div style={{display:'flex',alignItems:'flex-start',gap:4}}>
+            <div style={{display:'flex',flexDirection:'column',gap:4,width:44,flexShrink:0}}>
+              {yVals.map((v,i)=>(
+                <div key={i} style={{height:cellH,fontSize:7.5,color:'#888',display:'flex',alignItems:'center',justifyContent:'flex-end',paddingRight:4}}>{v}</div>
+              ))}
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:`repeat(${gridSize},${cellW}px)`,gap:4}}>
+              {yVals.map((yV,yi)=>
+                xVals.map((xV,xi)=>{
+                  const cellParams={...baseParams,[xKey]:xV,[yKey]:yV,_seed:xi*31+yi*17+101};
+                  const key=`${xi}-${yi}`;
+                  return(
+                    <MiniCanvas key={key} renderer={dataset.renderer} params={cellParams}
+                      cellW={cellW} cellH={cellH}
+                      selected={selected===key}
+                      onClick={()=>handleClick(xi,yi)}/>
+                  );
+                })
+              )}
+            </div>
+          </div>
+          <div style={{marginLeft:48,marginTop:6,fontSize:8.5,color:'#666',fontStyle:'italic'}}>
+            ← {xParam.label} →
+          </div>
+          <div style={{position:'absolute',left:0,top:'50%',transform:'rotate(-90deg) translateX(-50%)',fontSize:8.5,color:'#666',fontStyle:'italic',whiteSpace:'nowrap',transformOrigin:'left center'}}>
+            ← {yParam.label} →
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// APP
+// ═══════════════════════════════════════════════════════════════
+function App(){
+  const [tab,setTab]=useState('studio');
+  const [dsIdx,setDsIdx]=useState(0);
+  const [allParams,setAllParams]=useState(buildDefaults);
+
+  const dataset=DATASETS[dsIdx];
+  const params=allParams[dsIdx];
+
+  const handleParamChange=useCallback((key,val)=>{
+    setAllParams(prev=>({...prev,[dsIdx]:{...prev[dsIdx],[key]:val}}));
+  },[dsIdx]);
+
+  const handleReset=useCallback(()=>{
+    const def={};
+    ['ll','hl','nv'].forEach(g=>dataset.params[g].forEach(p=>{def[p.key]=p.def;}));
+    setAllParams(prev=>({...prev,[dsIdx]:def}));
+  },[dsIdx,dataset]);
+
+  const handleSelectCell=useCallback((p)=>{
+    setAllParams(prev=>({...prev,[dsIdx]:p}));
+    setTab('studio');
+  },[dsIdx]);
+
+  return(
+    <div id="app" style={{display:'flex',flexDirection:'column',minHeight:'100vh'}}>
+      <nav className="nav">
+        <span className="nav-title">Stimulus Lab</span>
+        <div className="tab-group">
+          <button className={`nav-btn${tab==='studio'?' active':''}`} onClick={()=>setTab('studio')}>Studio</button>
+          <button className={`nav-btn${tab==='grid'?' active':''}`} onClick={()=>setTab('grid')}>Grid Lab</button>
+        </div>
+        <div className="ds-group">
+          {DATASETS.map((ds,i)=>(
+            <button key={i} className={`ds-btn${dsIdx===i?` active ${ds.cls}`:''}`} onClick={()=>setDsIdx(i)}>
+              {ds.label}
+            </button>
+          ))}
+        </div>
+      </nav>
+      {tab==='studio'
+        ? <Studio dsIdx={dsIdx} dataset={dataset} params={params} onParamChange={handleParamChange} onReset={handleReset}/>
+        : <GridLab dataset={dataset} baseParams={params} onSelectCell={handleSelectCell}/>
+      }
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
